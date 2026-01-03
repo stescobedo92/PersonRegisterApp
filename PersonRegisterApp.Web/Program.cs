@@ -1,7 +1,16 @@
+using Microsoft.EntityFrameworkCore;
+using PersonRegisterApp.Web.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// registering it to the DI Container
+// scoped lifetime 
+string connectionString = builder.Configuration.GetConnectionString("Default") ?? throw new InvalidOperationException("Connection string is null");
+
+builder.Services.AddDbContext<AppDbContext>(o => o.UseSqlServer(connectionString));
 
 var app = builder.Build();
 
