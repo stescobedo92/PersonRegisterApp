@@ -8,12 +8,12 @@ namespace PersonRegisterApp.Web.Controllers;
 public class PersonController : Controller
 {
     private readonly ILogger<PersonController> _logger;
-    private readonly AppDbContext _ctx;
+    private readonly AppDbContext _ctx;    
 
     public PersonController(ILogger<PersonController> logger, AppDbContext ctx)
     {
         _logger = logger;
-        _ctx = ctx;
+        _ctx = ctx;        
     }
 
     public async Task<IActionResult> Index()
@@ -27,7 +27,7 @@ public class PersonController : Controller
         catch (Exception ex)
         {
             _logger.LogError(ex.Message);
-            TempData["error"] = "Error on saving Person record!";
+            SetTempDataMessage("error", ex.Message);
             return View();
         }
 
@@ -48,13 +48,13 @@ public class PersonController : Controller
         {
             _ctx.People.Add(person);  // person object is added to context
             await _ctx.SaveChangesAsync(); // actual database call
-            TempData["success"] = "Saved successfully!";
+            SetTempDataMessage("success", "Saved successfully!");
             return RedirectToAction(nameof(Add));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex.Message);
-            TempData["error"] = "Error on saving Person record!";
+            SetTempDataMessage("error", ex.Message);
             return View();
         }
     }
@@ -63,13 +63,19 @@ public class PersonController : Controller
     {
         try
         {
-            var person = await _ctx.People.AsNoTracking().SingleAsync(p => p.Id == id);
+            var person = await GetSinglePeopleAsync(id);
+
+            if (person is null)
+            {
+                SetTempDataMessage("error", "No record found!");
+                return RedirectToAction(nameof(Index));
+            }
             return View(person);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex.Message);
-            TempData["error"] = "Something went wrong!";
+            SetTempDataMessage("error", ex.Message);
             return View();
         }
     }
@@ -82,21 +88,21 @@ public class PersonController : Controller
 
         try
         {
-            if (!await _ctx.People.AnyAsync(p => p.Id != person.Id))
+            if (!await _ctx.People.AnyAsync(p => object.Equals(p.Id,person.Id)))
             {
-                TempData["error"] = "No record found";
+                SetTempDataMessage("error", "No record found!");
                 return View(person);
             }
 
             _ctx.People.Update(person);  // person object is added to context
             await _ctx.SaveChangesAsync(); // actual database call
-            TempData["success"] = "Updated successfully!";
+            SetTempDataMessage("success", "Updated successfully!");
             return RedirectToAction(nameof(Index));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex.Message);
-            TempData["error"] = "Error on saving Person record!";
+            SetTempDataMessage("error", ex.Message);
             return View();
         }
     }
@@ -106,16 +112,29 @@ public class PersonController : Controller
     {
         try
         {
-            var person = await _ctx.People.AsNoTracking().SingleAsync(p => p.Id == id);
+            var person = await GetSinglePeopleAsync(id);
+
+            if (person is null)
+            {
+                SetTempDataMessage("error", "No record found!");
+                return RedirectToAction(nameof(Index));
+            }
             _ctx.People.Remove(person);
             await _ctx.SaveChangesAsync();
-            TempData["success"] = "Deleted successfull!";
+            SetTempDataMessage("success", "Deleted successfull!");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex.Message);
-            TempData["error"] = "Something went wrong!";
+            SetTempDataMessage("error", "Something went wrong!");
         }
         return RedirectToAction(nameof(Index));
+    }
+
+    private async Task<Person?> GetSinglePeopleAsync(int id) => await _ctx.People.AsNoTracking().SingleOrDefaultAsync(p => object.Equals(p.Id, id));
+
+    private void SetTempDataMessage(string messageType, string message) 
+    {
+        TempData[messageType] = message;
     }
 }

@@ -30,6 +30,18 @@
                         <span class="d-block m-2 text-danger" asp-validation-for="LastName"></span>
                     </div>
 
+                    <div class="mb-3">
+                        <label for="email">Email</label>
+                        <input type="text" asp-for="Email" class="form-control" placeholder="example@example.com">
+                        <span class="d-block m-2 text-danger" asp-validation-for="Email"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="phoneNumber">Phone number</label>
+                        <input type="text" asp-for="PhoneNumber" class="form-control" placeholder="+522222222222">
+                        <span class="d-block m-2 text-danger" asp-validation-for="PhoneNumber"></span>
+                    </div>
+
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary">
                             <i class="fa fa-save"></i>
